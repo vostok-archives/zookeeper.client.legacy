@@ -1,0 +1,98 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <UsingTask TaskName="Kontur.MsBuild.GitCommit2AssemblyTitle" AssemblyFile="..\..\msbuild\bin\3.5\Release\Kontur.MsBuild.dll" />
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{36CFB7BE-8ABA-4972-8588-3FE238EE3277}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>ZooKeeper.Client</RootNamespace>
+    <AssemblyName>ZooKeeper.Client</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <DocumentationFile>
+    </DocumentationFile>
+    <NoWarn>1591</NoWarn>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <DocumentationFile>
+    </DocumentationFile>
+    <NoWarn>1591</NoWarn>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="IKVM.OpenJDK.Core">
+      <HintPath>..\Assemblies\Client\IKVM.OpenJDK.Core.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="IKVM.Runtime.dll">
+      <HintPath>..\Assemblies\Client\IKVM.Runtime.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Kontur.Logging, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\logging\Logging\bin\Release\Kontur.Logging.dll</HintPath>
+    </Reference>
+    <Reference Include="Kontur.Topology">
+      <HintPath>..\..\topology\topology\bin\Release\Kontur.Topology.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="ZooKeeper.Curator">
+      <HintPath>..\Assemblies\Client\ZooKeeper.Curator.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Kontur.Core">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\core\bin\Release\Kontur.Core.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="AnonymousWatcher.cs" />
+    <Compile Include="CreateMode.cs" />
+    <Compile Include="FriendAssemblies.cs" />
+    <Compile Include="IWatcher.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Stat.cs" />
+    <Compile Include="Utilities\ConnectionListener.cs" />
+    <Compile Include="Utilities\ClusterConfigEnsembleProvider.cs" />
+    <Compile Include="IZooKeeperClient.cs" />
+    <Compile Include="Utilities\ConnectionStringRandomizer.cs" />
+    <Compile Include="Utilities\IRandomizedEnsembleProvider.cs" />
+    <Compile Include="Utilities\LoggingAdapter.cs" />
+    <Compile Include="Properties\AssemblyTitle.cs" />
+    <Compile Include="RetryStrategy.cs" />
+    <Compile Include="EventType.cs" />
+    <Compile Include="Utilities\ReferenceEqualityComparer.cs" />
+    <Compile Include="Utilities\WatcherWrapper.cs" />
+    <Compile Include="ZooKeeperClient.cs" />
+    <Compile Include="ConnectionState.cs" />
+    <Compile Include="ZooKeeperClientProvider.cs" />
+    <Compile Include="ZooKeeperException.cs" />
+    <Compile Include="ZooKeeperResult.cs" />
+    <Compile Include="ZooKeeperStatus.cs" />
+  </ItemGroup>
+   <ItemGroup>
+    <None Include="ZooKeeper.Client.nuspec" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Target Name="BeforeBuild">
+    <GitCommit2AssemblyTitle />
+  </Target>
+</Project>

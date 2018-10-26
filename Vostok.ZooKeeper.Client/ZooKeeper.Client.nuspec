@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
+  <metadata>
+    <id>$id$</id>
+    <version>$version$</version>
+    <title>$id$</title>
+    <authors>Kontur</authors>
+    <owners>Kontur</owners>
+    <projectUrl>$url$</projectUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>$info$</description>
+    <tags>$tags$</tags>
+    <dependencies>
+      <dependency id="Kontur.Core" />
+      <dependency id="Kontur.Logging" />
+      <dependency id="Kontur.Topology" />
+    </dependencies>
+  </metadata>
+  <files>
+    <file src="..\Assemblies\Client\IKVM.*.dll" target="lib\net45" />
+    <file src="..\Assemblies\Client\ZooKeeper.Curator.dll" target="lib\net45" />
+    <file src="bin\Release\ZooKeeper.Client.pdb" target="lib\net45" />
+  </files>
+</package>

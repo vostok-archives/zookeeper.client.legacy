@@ -1,0 +1,50 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="..\..\vostok.devtools\library-common-props\Main-Project.props" />
+  <Import Project="..\..\vostok.devtools\git-commit-to-assembly-title\Vostok.Tools.GitCommit2AssemblyTitle.props" />
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <Configurations>Debug;Release</Configurations>
+    <LangVersion>7.2</LangVersion>
+  </PropertyGroup>
+  <PropertyGroup>
+    <VersionPrefix>0.0.1</VersionPrefix>
+  </PropertyGroup>
+  <PropertyGroup>
+    <Title>Vostok.Zookeeper.Client</Title>
+    <Description>Vostok.Zookeeper.Client</Description>
+  </PropertyGroup>
+  <PropertyGroup>
+    <PackageProjectUrl>https://github.com/vostok/zookeper.client</PackageProjectUrl>
+    <PackageLicenseUrl>https://github.com/vostok/zookeper.client/blob/master/LICENSE</PackageLicenseUrl>
+    <PackageTags>vostok</PackageTags>
+    <RepositoryUrl>https://github.com/vostok/zookeper.client</RepositoryUrl>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="IKVM.OpenJDK.Core">
+      <HintPath>..\Assemblies\Client\IKVM.OpenJDK.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="IKVM.Runtime">
+      <HintPath>..\Assemblies\Client\IKVM.Runtime.dll</HintPath>
+    </Reference>
+    <Reference Include="Vostok.Logging.Abstractions">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\vostok.logging.abstractions\Vostok.Logging.Abstractions\bin\Release\netstandard2.0\Vostok.Logging.Abstractions.dll</HintPath>
+    </Reference>
+    <Reference Include="Vostok.Commons.Collections">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\vostok.commons.collections\Vostok.Commons.Collections\bin\Release\netstandard2.0\Vostok.Commons.Collections.dll</HintPath>
+    </Reference>
+    <Reference Include="Vostok.Commons.Time">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\vostok.commons.time\Vostok.Commons.Time\bin\Release\netstandard2.0\Vostok.Commons.Time.dll</HintPath>
+    </Reference>
+    <Reference Include="ZooKeeper.Curator">
+      <HintPath>..\Assemblies\Client\ZooKeeper.Curator.dll</HintPath>
+    </Reference>
+    <Reference Include="Vostok.Commons.Threading">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\vostok.commons.threading\Vostok.Commons.Threading\bin\Release\netstandard2.0\Vostok.Commons.Threading.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+</Project>
