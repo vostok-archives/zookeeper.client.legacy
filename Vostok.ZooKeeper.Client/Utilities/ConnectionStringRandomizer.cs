@@ -8,6 +8,14 @@ namespace Vostok.Zookeeper.Client.Utilities
 {
     internal class ConnectionStringRandomizer
     {
+        private const int RecentAttemptsNeededToRandomize = 6;
+        private static readonly TimeSpan RecencyThreshold = 10.Minutes();
+
+        private readonly EnsembleProvider ensembleProvider;
+        private readonly CircularBuffer<DateTime> attemptTimestamps;
+        private readonly object locker;
+        private DateTime lastRandomization;
+
         public ConnectionStringRandomizer(EnsembleProvider ensembleProvider)
         {
             this.ensembleProvider = ensembleProvider;
@@ -46,17 +54,9 @@ namespace Vostok.Zookeeper.Client.Utilities
 
         private bool HadMultipleAttemptsRecently(DateTime currentTimestamp)
         {
-            return 
-                attemptTimestamps.Count == attemptTimestamps.Capacity && 
+            return
+                attemptTimestamps.Count == attemptTimestamps.Capacity &&
                 attemptTimestamps.All(ts => currentTimestamp - ts <= RecencyThreshold);
         }
-
-        private readonly EnsembleProvider ensembleProvider;
-        private readonly CircularBuffer<DateTime> attemptTimestamps;
-        private readonly object locker;
-        private DateTime lastRandomization;
-
-        private const int RecentAttemptsNeededToRandomize = 6;
-        private static readonly TimeSpan RecencyThreshold = 10.Minutes();
     }
 }

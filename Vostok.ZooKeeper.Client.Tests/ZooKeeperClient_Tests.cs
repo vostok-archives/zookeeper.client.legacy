@@ -166,7 +166,7 @@ namespace Vostok.Zookeeper.Client.Tests
         [TestCase(CreateMode.Persistent, "/getChildrenPersistent/child1", "/getChildrenPersistent/child2", "/getChildrenPersistent/child3")]
         public void GetChildren_should_return_all_children(CreateMode createMode, params string[] nodes)
         {
-            var rootNode = "/" + nodes.First().Split(new[] { "/" }, StringSplitOptions.RemoveEmptyEntries).First();
+            var rootNode = "/" + nodes.First().Split(new[] {"/"}, StringSplitOptions.RemoveEmptyEntries).First();
             var children = nodes.Select(x => x.Replace(rootNode + "/", string.Empty)).ToArray();
 
             using (var client = CreateNewClient())
@@ -175,7 +175,7 @@ namespace Vostok.Zookeeper.Client.Tests
                 {
                     CreateNode(node, createMode, client);
                 }
-                
+
                 EnsureChildrenExists(client, rootNode, children);
             }
 
@@ -197,7 +197,7 @@ namespace Vostok.Zookeeper.Client.Tests
         [TestCase(CreateMode.Persistent, "/getChildrenWithStatPersistent/child1", "/getChildrenWithStatPersistent/child2", "/getChildrenWithStatPersistent/child3")]
         public void GetChildrenWithStat_should_return_all_children_with_correct_Stat(CreateMode createMode, params string[] nodes)
         {
-            var rootNode = "/" + nodes.First().Split(new[] { "/" }, StringSplitOptions.RemoveEmptyEntries).First();
+            var rootNode = "/" + nodes.First().Split(new[] {"/"}, StringSplitOptions.RemoveEmptyEntries).First();
             var children = nodes.Select(x => x.Replace(rootNode + "/", string.Empty)).ToArray();
 
             using (var client = CreateNewClient())

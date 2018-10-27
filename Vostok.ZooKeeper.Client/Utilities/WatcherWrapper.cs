@@ -3,19 +3,19 @@ using org.apache.zookeeper;
 
 namespace Vostok.Zookeeper.Client.Utilities
 {
-	internal class WatcherWrapper : CuratorWatcher
-	{
-		public WatcherWrapper(IWatcher userWatcher)
-		{
-			this.userWatcher = userWatcher;
-		}
+    internal class WatcherWrapper : CuratorWatcher
+    {
+        private readonly IWatcher userWatcher;
 
-		public void process(WatchedEvent watcherEvent)
-		{
-			if (!watcherEvent.getType().Equals(Watcher.Event.EventType.None))
-				userWatcher.ProcessEvent((EventType) watcherEvent.getType().getIntValue(), watcherEvent.getPath());
-		}
+        public WatcherWrapper(IWatcher userWatcher)
+        {
+            this.userWatcher = userWatcher;
+        }
 
-		private readonly IWatcher userWatcher;
-	}
+        public void process(WatchedEvent watcherEvent)
+        {
+            if (!watcherEvent.getType().Equals(Watcher.Event.EventType.None))
+                userWatcher.ProcessEvent((EventType) watcherEvent.getType().getIntValue(), watcherEvent.getPath());
+        }
+    }
 }

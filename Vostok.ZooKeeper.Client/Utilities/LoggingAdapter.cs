@@ -6,115 +6,116 @@ using Vostok.Logging.Abstractions;
 
 namespace Vostok.Zookeeper.Client.Utilities
 {
-	/// <summary>
-	/// Проксирует вывод log4j в экземпляр <see cref="ILog"/>.
-	/// </summary>
-	internal class LoggingAdapter : Appender
-	{
-		public LoggingAdapter(ILog log)
-		{
-			this.log = log;
-		}
+    /// <summary>
+    /// Проксирует вывод log4j в экземпляр <see cref="ILog"/>.
+    /// </summary>
+    internal class LoggingAdapter : Appender
+    {
+        private readonly ILog log;
 
-		public static void Setup(ILog log)
-		{
-			Logger.getRootLogger().removeAllAppenders();
-			Logger.getRootLogger().addAppender(new LoggingAdapter(log));
-		}
+        public LoggingAdapter(ILog log)
+        {
+            this.log = log;
+        }
 
-		public void doAppend(LoggingEvent loggingEvent)
-		{
-			switch (loggingEvent.getLevel().toInt())
-			{
-				case Priority.DEBUG_INT:
-					if (log.IsEnabledForDebug())
-						log.Debug(FormatLoggingEvent(loggingEvent));
-					break;
-				case Priority.INFO_INT:
-					if (log.IsEnabledForInfo())
-						log.Info(FormatLoggingEvent(loggingEvent));
-					break;
-				case Priority.WARN_INT:
-					if (log.IsEnabledForWarn())
-						log.Warn(FormatLoggingEvent(loggingEvent));
-					break;
-				case Priority.ERROR_INT:
-					if (log.IsEnabledForError())
-						log.Error(FormatLoggingEvent(loggingEvent));
-					break;
-				case Priority.FATAL_INT:
-					if (log.IsEnabledForFatal())
-						log.Fatal(FormatLoggingEvent(loggingEvent));
-					break;
-			}
-		}
+        public static void Setup(ILog log)
+        {
+            Logger.getRootLogger().removeAllAppenders();
+            Logger.getRootLogger().addAppender(new LoggingAdapter(log));
+        }
 
-		public void addFilter(Filter f)
-		{
-		}
+        public void doAppend(LoggingEvent loggingEvent)
+        {
+            switch (loggingEvent.getLevel().toInt())
+            {
+                case Priority.DEBUG_INT:
+                    if (log.IsEnabledForDebug())
+                        log.Debug(FormatLoggingEvent(loggingEvent));
+                    break;
+                case Priority.INFO_INT:
+                    if (log.IsEnabledForInfo())
+                        log.Info(FormatLoggingEvent(loggingEvent));
+                    break;
+                case Priority.WARN_INT:
+                    if (log.IsEnabledForWarn())
+                        log.Warn(FormatLoggingEvent(loggingEvent));
+                    break;
+                case Priority.ERROR_INT:
+                    if (log.IsEnabledForError())
+                        log.Error(FormatLoggingEvent(loggingEvent));
+                    break;
+                case Priority.FATAL_INT:
+                    if (log.IsEnabledForFatal())
+                        log.Fatal(FormatLoggingEvent(loggingEvent));
+                    break;
+            }
+        }
 
-		public Filter getFilter()
-		{
-			var filter = new LevelRangeFilter();
-			filter.setLevelMin(Level.DEBUG);
-			filter.setLevelMax(Level.FATAL);
-			return filter;
-		}
+        public void addFilter(Filter f)
+        {
+        }
 
-		public void clearFilters()
-		{
-		}
+        public Filter getFilter()
+        {
+            var filter = new LevelRangeFilter();
+            filter.setLevelMin(Level.DEBUG);
+            filter.setLevelMax(Level.FATAL);
+            return filter;
+        }
 
-		public void close()
-		{
-		}
+        public void clearFilters()
+        {
+        }
 
-		public string getName()
-		{
-			return "Log4jToKonturLoggingAdapter";
-		}
+        public void close()
+        {
+        }
 
-		public void setErrorHandler(ErrorHandler eh)
-		{
-		}
+        public string getName()
+        {
+            return "Log4jToKonturLoggingAdapter";
+        }
 
-		public ErrorHandler getErrorHandler()
-		{
-			return null;
-		}
+        public void setErrorHandler(ErrorHandler eh)
+        {
+        }
 
-		public void setLayout(Layout l)
-		{
-		}
+        public ErrorHandler getErrorHandler()
+        {
+            return null;
+        }
 
-		public Layout getLayout()
-		{
-			return new SimpleLayout();
-		}
+        public void setLayout(Layout l)
+        {
+        }
 
-		public void setName(string str)
-		{
-		}
+        public Layout getLayout()
+        {
+            return new SimpleLayout();
+        }
 
-		public bool requiresLayout()
-		{
-			return false;
-		}
+        public void setName(string str)
+        {
+        }
 
-		private static string FormatLoggingEvent(LoggingEvent loggingEvent)
-		{
-			var exceptionInformation = loggingEvent.getThrowableStrRep();
-			if (exceptionInformation == null)
-				return loggingEvent.getRenderedMessage();
-			var builder = new StringBuilder(loggingEvent.getRenderedMessage());
-			foreach (var exceptionLine in exceptionInformation)
-			{
-				builder.AppendLine();
-				builder.Append(exceptionLine);
-			}
-			return builder.ToString();
-		}
+        public bool requiresLayout()
+        {
+            return false;
+        }
 
-		private readonly ILog log;
-	}
+        private static string FormatLoggingEvent(LoggingEvent loggingEvent)
+        {
+            var exceptionInformation = loggingEvent.getThrowableStrRep();
+            if (exceptionInformation == null)
+                return loggingEvent.getRenderedMessage();
+            var builder = new StringBuilder(loggingEvent.getRenderedMessage());
+            foreach (var exceptionLine in exceptionInformation)
+            {
+                builder.AppendLine();
+                builder.Append(exceptionLine);
+            }
+
+            return builder.ToString();
+        }
+    }
 }

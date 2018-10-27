@@ -12,6 +12,13 @@ namespace Vostok.ZooKeeper.Client.Tests
 {
     internal class AnonymousWatcher_Tests : TestBase
     {
+        private ZooKeeperClient client;
+
+        private int notificationsReceived;
+        private IWatcher countingWatcher;
+        private string rootNode;
+        private string childNode;
+
         public AnonymousWatcher_Tests()
             : base(new SilentLog())
         {
@@ -87,16 +94,9 @@ namespace Vostok.ZooKeeper.Client.Tests
                 client.Exists(rootNode, countingWatcher);
                 DeleteNode(rootNode, client);
             }
-            
+
             Action checkNotificationsCountAction = () => notificationsReceived.Should().Be(3);
             checkNotificationsCountAction.ShouldPassIn(5.Seconds());
         }
-
-        private ZooKeeperClient client;
-
-        private int notificationsReceived;
-        private IWatcher countingWatcher;
-        private string rootNode;
-        private string childNode;
     }
 }

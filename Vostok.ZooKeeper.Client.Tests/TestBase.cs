@@ -9,8 +9,8 @@ namespace Vostok.Zookeeper.Client.Tests
 {
     internal abstract class TestBase
     {
-        private readonly ILog log;
         protected ZooKeeperEnsemble ensemble;
+        private readonly ILog log;
 
         protected TestBase(ILog log)
         {
@@ -29,14 +29,6 @@ namespace Vostok.Zookeeper.Client.Tests
             ensemble.Dispose();
         }
 
-        protected ZooKeeperClient CreateNewClient(ILog logForClient = null)
-        {
-            var client = new ZooKeeperClient(ensemble.ConnectionString, 5.Seconds(), logForClient ?? log);
-            client.Start();
-            client.WaitUntilConnected();
-            return client;
-        }
-        
         protected static void EnsureChildrenExistWithCorrectStat(IZooKeeperClient client, string rootNode, string[] children, int nodeVersion = 0, int childVersion = 0)
         {
             var getChildrenWithStatResult = client.GetChildrenWithStat(rootNode);
@@ -119,6 +111,14 @@ namespace Vostok.Zookeeper.Client.Tests
             var currentStat = client.GetData(rootNode).Payload.Item2;
             currentStat.Version.Should().Be(version);
             currentStat.Cversion.Should().Be(cVersion);
+        }
+
+        protected ZooKeeperClient CreateNewClient(ILog logForClient = null)
+        {
+            var client = new ZooKeeperClient(ensemble.ConnectionString, 5.Seconds(), logForClient ?? log);
+            client.Start();
+            client.WaitUntilConnected();
+            return client;
         }
     }
 }

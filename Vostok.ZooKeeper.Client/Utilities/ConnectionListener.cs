@@ -4,18 +4,18 @@ using org.apache.curator.framework.state;
 
 namespace Vostok.Zookeeper.Client.Utilities
 {
-	internal class ConnectionListener : ConnectionStateListener
-	{
-		public ConnectionListener(Action<ConnectionState> callback)
-		{
-			this.callback = callback;
-		}
+    internal class ConnectionListener : ConnectionStateListener
+    {
+        private readonly Action<ConnectionState> callback;
 
-		public void stateChanged(CuratorFramework curator, org.apache.curator.framework.state.ConnectionState state)
-		{
-			callback((ConnectionState) state.ordinal());
-		}
+        public ConnectionListener(Action<ConnectionState> callback)
+        {
+            this.callback = callback;
+        }
 
-		private readonly Action<ConnectionState> callback;
-	}
+        public void stateChanged(CuratorFramework curator, org.apache.curator.framework.state.ConnectionState state)
+        {
+            callback((ConnectionState) state.ordinal());
+        }
+    }
 }

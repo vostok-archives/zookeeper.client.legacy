@@ -1,6 +1,8 @@
-﻿namespace Vostok.Zookeeper.Client.Utilities
+﻿using org.apache.curator.ensemble;
+
+namespace Vostok.Zookeeper.Client.Utilities
 {
-    internal interface IRandomizedEnsembleProvider : org.apache.curator.ensemble.EnsembleProvider
+    internal interface IRandomizedEnsembleProvider : EnsembleProvider
     {
         void Randomize();
     }

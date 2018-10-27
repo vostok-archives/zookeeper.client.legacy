@@ -4,6 +4,8 @@ namespace Vostok.Zookeeper.Client
 {
     public class AnonymousWatcher : IWatcher
     {
+        private readonly Action<EventType, string> processingDelegate;
+
         public AnonymousWatcher(Action<EventType, string> processingDelegate)
         {
             this.processingDelegate = processingDelegate;
@@ -13,7 +15,5 @@ namespace Vostok.Zookeeper.Client
         {
             processingDelegate(type, path);
         }
-
-        private readonly Action<EventType, string> processingDelegate;
     }
 }
