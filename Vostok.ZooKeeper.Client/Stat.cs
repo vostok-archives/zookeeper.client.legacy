@@ -117,7 +117,7 @@
 		{
 			unchecked
 			{
-				int hashCode = Czxid.GetHashCode();
+				var hashCode = Czxid.GetHashCode();
 				hashCode = (hashCode * 397) ^ Mzxid.GetHashCode();
 				hashCode = (hashCode * 397) ^ Ctime.GetHashCode();
 				hashCode = (hashCode * 397) ^ Mtime.GetHashCode();

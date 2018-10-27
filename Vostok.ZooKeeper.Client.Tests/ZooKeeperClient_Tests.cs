@@ -1,7 +1,10 @@
-﻿using System.Text;
+﻿using System;
+using System.Linq;
 using FluentAssertions;
+using FluentAssertions.Extensions;
 using NUnit.Framework;
 using Vostok.Logging.Abstractions;
+using Vostok.Commons.Testing;
 
 namespace Vostok.Zookeeper.Client.Tests
 {
@@ -13,6 +16,47 @@ namespace Vostok.Zookeeper.Client.Tests
         {
         }
 
+        [Test]
+        public void IsStarted_should_be_false_by_default()
+        {
+            var client = new ZooKeeperClient(ensemble.ConnectionString, 5.Seconds(), new SilentLog());
+
+            client.IsStarted.Should().BeFalse();
+            client.IsConnected.Should().BeFalse();
+        }
+
+        [Test]
+        public void Start_should_start_client()
+        {
+            var client = new ZooKeeperClient(ensemble.ConnectionString, 5.Seconds(), new SilentLog());
+
+            client.Start();
+            client.IsStarted.Should().BeTrue();
+            Action checkIsConnected = () => client.IsConnected.Should().BeTrue();
+            checkIsConnected.ShouldPassIn(5.Seconds());
+        }
+
+        [Test]
+        public void Test_KillSession()
+        {
+            using (var client = CreateNewClient())
+            {
+                var sessionId = client.SessionId;
+                var sessionPassword = client.SessionPassword;
+
+                client.KillSession(TimeSpan.FromSeconds(10));
+                client.WaitUntilConnected();
+
+                Action checkNewSessionIdAndPassword = () =>
+                {
+                    // ReSharper disable AccessToDisposedClosure
+                    client.SessionId.Should().NotBe(sessionId);
+                    client.SessionPassword.Should().NotBeEquivalentTo(sessionPassword);
+                };
+                checkNewSessionIdAndPassword.ShouldPassIn(10.Seconds());
+            }
+        }
+
         [TestCase("/nesting1")]
         [TestCase("/node/nesting2")]
         [TestCase("/node/nesting2_1")]
@@ -21,10 +65,11 @@ namespace Vostok.Zookeeper.Client.Tests
         {
             using (var client = CreateNewClient())
             {
-                var createResult = client.Create(path, null, CreateMode.Persistent).EnsureSuccess();
+                CreateNode(path, CreateMode.Persistent, client);
 
-                createResult.Status.Should().Be(ZooKeeperStatus.Ok);
-                createResult.Path.Should().Be(path);
+                EnsureNodeExist(path, client);
+
+                DeleteNode(path, client);
             }
         }
 
@@ -41,6 +86,8 @@ namespace Vostok.Zookeeper.Client.Tests
                 EnsureNodeExist(path, anotherClient);
 
                 anotherClient.Create(path, null, CreateMode.Persistent).Status.Should().Be(ZooKeeperStatus.NodeExists);
+
+                DeleteNode(path, anotherClient);
             }
         }
 
@@ -101,7 +148,7 @@ namespace Vostok.Zookeeper.Client.Tests
         }
 
         [TestCase("/setData/node/qwerty", "qwerty")]
-        public void SetData_should(string path, string data)
+        public void SetData_and_GetData_should_works_correct(string path, string data)
         {
             using (var client = CreateNewClient())
             {
@@ -110,62 +157,107 @@ namespace Vostok.Zookeeper.Client.Tests
                 SetData(path, data, client);
 
                 EnsureDataExists(path, client, data, 1);
+
+                DeleteNode(path, client);
             }
         }
 
-        private static void CreateNode(string path, CreateMode createMode, IZooKeeperClient client)
+        [TestCase(CreateMode.Ephemeral, "/getChildrenEphemeral/child1", "/getChildrenEphemeral/child2", "/getChildrenEphemeral/child3")]
+        [TestCase(CreateMode.Persistent, "/getChildrenPersistent/child1", "/getChildrenPersistent/child2", "/getChildrenPersistent/child3")]
+        public void GetChildren_should_return_all_children(CreateMode createMode, params string[] nodes)
         {
-            var createResult = client.Create(path, null, createMode).EnsureSuccess();
-            createResult.Path.Should().Be(path);
-            createResult.Status.Should().Be(ZooKeeperStatus.Ok);
+            var rootNode = "/" + nodes.First().Split(new[] { "/" }, StringSplitOptions.RemoveEmptyEntries).First();
+            var children = nodes.Select(x => x.Replace(rootNode + "/", string.Empty)).ToArray();
+
+            using (var client = CreateNewClient())
+            {
+                foreach (var node in nodes)
+                {
+                    CreateNode(node, createMode, client);
+                }
+                
+                EnsureChildrenExists(client, rootNode, children);
+            }
+
+            if (createMode == CreateMode.Ephemeral)
+                return;
+
+            using (var anotherClient = CreateNewClient())
+            {
+                EnsureChildrenExists(anotherClient, rootNode, children);
+
+                foreach (var node in nodes)
+                {
+                    DeleteNode(node, anotherClient);
+                }
+            }
         }
 
-        private static void EnsureNodeExist(string path, IZooKeeperClient anotherClient, int expectedVersion = 0)
+        [TestCase(CreateMode.Ephemeral, "/getChildrenWithStatEphemeral/child1", "/getChildrenWithStatEphemeral/child2", "/getChildrenWithStatEphemeral/child3")]
+        [TestCase(CreateMode.Persistent, "/getChildrenWithStatPersistent/child1", "/getChildrenWithStatPersistent/child2", "/getChildrenWithStatPersistent/child3")]
+        public void GetChildrenWithStat_should_return_all_children_with_correct_Stat(CreateMode createMode, params string[] nodes)
         {
-            var existResult = anotherClient.Exists(path);
-            existResult.Path.Should().Be(path);
-            existResult.Status.Should().Be(ZooKeeperStatus.Ok);
-            existResult.Payload.Version.Should().Be(expectedVersion);
+            var rootNode = "/" + nodes.First().Split(new[] { "/" }, StringSplitOptions.RemoveEmptyEntries).First();
+            var children = nodes.Select(x => x.Replace(rootNode + "/", string.Empty)).ToArray();
+
+            using (var client = CreateNewClient())
+            {
+                foreach (var node in nodes)
+                {
+                    CreateNode(node, createMode, client);
+                }
+
+                EnsureChildrenExistWithCorrectStat(client, rootNode, children, 0, 3);
+            }
+
+            if (createMode == CreateMode.Ephemeral)
+                return;
+
+            using (var anotherClient = CreateNewClient())
+            {
+                EnsureChildrenExistWithCorrectStat(anotherClient, rootNode, children, 0, 3);
+
+                foreach (var node in nodes)
+                {
+                    DeleteNode(node, anotherClient);
+                }
+            }
         }
 
-        private static void EnsureNodeDoesNotExist(string path, IZooKeeperClient anotherClient)
+        [Test]
+        public void Client_should_correct_see_node_Stat()
         {
-            var existResult = anotherClient.Exists(path);
-            existResult.Path.Should().Be(path);
-            existResult.Status.Should().Be(ZooKeeperStatus.Ok);
-            existResult.Payload.Should().BeNull();
-        }
+            const string rootNode = "/statChecking";
+            const string childNode = "/statChecking/child1";
 
-        private static void DeleteNode(string path, IZooKeeperClient client)
-        {
-            var deleteResult = client.Delete(path).EnsureSuccess();
-            deleteResult.Status.Should().Be(ZooKeeperStatus.Ok);
-            deleteResult.Path.Should().Be(path);
-        }
+            using (var client = CreateNewClient())
+            {
+                CreateNode(rootNode, CreateMode.Persistent, client);
 
-        private static void DeleteNonexistentNode(string path, IZooKeeperClient client)
-        {
-            var deleteResult = client.Delete(path);
-            deleteResult.Status.Should().Be(ZooKeeperStatus.NoNode);
-            deleteResult.Path.Should().Be(path);
-        }
+                var currentVersion = 0;
+                var currentCVersion = 0;
+                CheckVersions(client, rootNode, currentVersion, currentCVersion);
 
-        private static void SetData(string path, string data, IZooKeeperClient client)
-        {
-            var setDataResult = client.SetData(path, Encoding.UTF8.GetBytes(data)).EnsureSuccess();
-            setDataResult.Status.Should().Be(ZooKeeperStatus.Ok);
-            setDataResult.Path.Should().Be(path);
-        }
+                for (var i = 0; i < 3; i++)
+                {
+                    CreateNode(childNode, CreateMode.Persistent, client);
+                    currentCVersion++;
 
-        private static void EnsureDataExists(string path, IZooKeeperClient client, string expectedData, int expectedVersion = 0)
-        {
-            var expectedDataBytes = Encoding.UTF8.GetBytes(expectedData);
-            var getDataResult = client.GetData(path);
-            getDataResult.EnsureSuccess();
-            getDataResult.Path.Should().Be(path);
-            getDataResult.Status.Should().Be(ZooKeeperStatus.Ok);
-            getDataResult.Payload.Item1.Should().BeEquivalentTo(expectedDataBytes);
-            getDataResult.Payload.Item2.Version.Should().Be(expectedVersion);
+                    CheckVersions(client, rootNode, currentVersion, currentCVersion);
+
+                    SetData(rootNode, "some data", client);
+                    currentVersion++;
+
+                    CheckVersions(client, rootNode, currentVersion, currentCVersion);
+
+                    DeleteNode(childNode, client);
+                    currentCVersion++;
+
+                    CheckVersions(client, rootNode, currentVersion, currentCVersion);
+                }
+
+                DeleteNode(rootNode, client);
+            }
         }
     }
 }

@@ -126,7 +126,7 @@ namespace Vostok.Zookeeper.Client
 			}
 			return ExecuteOperation(path, () =>
 			{
-				CreateBuilder builder = curator.create();
+				var builder = curator.create();
 				builder = (CreateBuilder) builder.withMode(org.apache.zookeeper.CreateMode.fromFlag((int)createMode));
 				// (iloktionov): Для sequential-нод может понадобиться защита от false-negative в виде GUID'а в имени ноды.
 				if (withProtection && (createMode == CreateMode.PersistentSequential || createMode == CreateMode.EphemeralSequential))
@@ -142,7 +142,7 @@ namespace Vostok.Zookeeper.Client
 			LogDelete(path, version, deleteChildrenIfNeeded);
 			return ExecuteOperation(path, () =>
 			{
-				DeleteBuilder builder = curator.delete();
+				var builder = curator.delete();
 				builder = (DeleteBuilder) builder.withVersion(version);
 				if (deleteChildrenIfNeeded)
 					builder = (DeleteBuilder) builder.deletingChildrenIfNeeded();
@@ -170,7 +170,7 @@ namespace Vostok.Zookeeper.Client
 			LogGetChildren(path, watcher);
 			return ExecuteOperation(path, () =>
 			{
-				GetChildrenBuilder builder = curator.getChildren();
+				var builder = curator.getChildren();
 				if (watcher != null)
 					builder = (GetChildrenBuilder) builder.usingWatcher(WrapWatcher(watcher));
 				return ((java.util.List)builder.forPath(path)).toArray().Select(o => o.ToString()).ToArray();
@@ -182,7 +182,7 @@ namespace Vostok.Zookeeper.Client
 	        LogGetChildren(path, watcher);
 	        return ExecuteOperation(path, () =>
 	        {
-	            GetChildrenBuilder builder = curator.getChildren();
+	            var builder = curator.getChildren();
 
 	            if (watcher != null)
 	                builder = (GetChildrenBuilder)builder.usingWatcher(WrapWatcher(watcher));
@@ -202,7 +202,7 @@ namespace Vostok.Zookeeper.Client
 			LogExists(path, watcher);
 			return ExecuteOperation(path, () =>
 			{
-				ExistsBuilder builder = curator.checkExists();
+				var builder = curator.checkExists();
 				if (watcher != null)
 					builder = (ExistsBuilder) builder.usingWatcher(WrapWatcher(watcher));
 				var zkStat = (org.apache.zookeeper.data.Stat) builder.forPath(path);
@@ -217,7 +217,7 @@ namespace Vostok.Zookeeper.Client
 			LogGetData(path, watcher);
 			return ExecuteOperation(path, () =>
 			{
-				GetDataBuilder builder = curator.getData();
+				var builder = curator.getData();
 				var stat = new org.apache.zookeeper.data.Stat();
 				if (watcher != null)
 					builder = (GetDataBuilder) builder.usingWatcher(WrapWatcher(watcher));
@@ -230,18 +230,18 @@ namespace Vostok.Zookeeper.Client
         {
             if (!IsConnected)
                 return;
-            string connectionString = curator.getZookeeperClient().getCurrentConnectionString();
+            var connectionString = curator.getZookeeperClient().getCurrentConnectionString();
             var zooKeeper = new org.apache.zookeeper.ZooKeeper(connectionString, 5000, null, SessionId, SessionPassword);
             try
             {
-                Stopwatch watch = Stopwatch.StartNew();
+                var watch = Stopwatch.StartNew();
                 while (watch.Elapsed < timeout)
                 {
                     if (zooKeeper.getState().Equals(org.apache.zookeeper.ZooKeeper.States.CONNECTED))
                         return;
                     Thread.Sleep(100);
                 }
-                throw new TimeoutException(String.Format("Expected to kill session within {0}, but failed to do so.", timeout));
+                throw new TimeoutException($"Expected to kill session within {timeout}, but failed to do so.");
             }
             finally
             {
@@ -254,17 +254,11 @@ namespace Vostok.Zookeeper.Client
             LoggingAdapter.Setup(log);
         }
 
-	    public bool IsConnected
-	    {
-	        get { return curator.getZookeeperClient().isConnected(); }
-	    }
+	    public bool IsConnected => curator.getZookeeperClient().isConnected();
 
-	    public bool IsStarted
-	    {
-            get { return curator.getState() == CuratorFrameworkState.STARTED; }
-	    }
+	    public bool IsStarted => curator.getState() == CuratorFrameworkState.STARTED;
 
-		public event Action<ConnectionState> ConnectionStateChanged;
+	    public event Action<ConnectionState> ConnectionStateChanged;
 
 		internal void WaitUntilConnected()
 		{
@@ -273,36 +267,20 @@ namespace Vostok.Zookeeper.Client
 
 	    public ZooKeeperClient UsingNamespace(string nameSpace)
 	    {
-	        return new ZooKeeperClient(curator.usingNamespace(String.IsNullOrWhiteSpace(nameSpace) ? null : nameSpace.TrimStart('/')), baseLog, connectionStringRandomizer);
+	        return new ZooKeeperClient(curator.usingNamespace(string.IsNullOrWhiteSpace(nameSpace) ? null : nameSpace.TrimStart('/')), baseLog, connectionStringRandomizer);
 	    }
 
-        internal CuratorFramework Curator
-		{
-			get { return curator; }
-		}
+        internal CuratorFramework Curator => curator;
 
-		public long SessionId
-		{
-			get { return curator.getZookeeperClient().getZooKeeper().getSessionId(); }
-		}
+	    public long SessionId => curator.getZookeeperClient().getZooKeeper().getSessionId();
 
-		public byte[] SessionPassword
-		{
-			get { return curator.getZookeeperClient().getZooKeeper().getSessionPasswd(); }
-		}
+	    public byte[] SessionPassword => curator.getZookeeperClient().getZooKeeper().getSessionPasswd();
 
-	    public TimeSpan SessionTimeout
-	    {
-	        get { return curator.getZookeeperClient().getZooKeeper().getSessionTimeout().Milliseconds(); }
-	    }
+	    public TimeSpan SessionTimeout => curator.getZookeeperClient().getZooKeeper().getSessionTimeout().Milliseconds();
 
-	    internal ILog Log
-	    {
-            // will be used in ServiceBeacon constructor with ZooKeeperClient
-            get { return log; }
-	    }
+	    internal ILog Log => log;
 
-		private ZooKeeperResult ExecuteOperation(string path, Action operation)
+	    private ZooKeeperResult ExecuteOperation(string path, Action operation)
 		{
 			try
 			{

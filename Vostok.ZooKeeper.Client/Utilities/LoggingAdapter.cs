@@ -103,11 +103,11 @@ namespace Vostok.Zookeeper.Client.Utilities
 
 		private static string FormatLoggingEvent(LoggingEvent loggingEvent)
 		{
-			string[] exceptionInformation = loggingEvent.getThrowableStrRep();
+			var exceptionInformation = loggingEvent.getThrowableStrRep();
 			if (exceptionInformation == null)
 				return loggingEvent.getRenderedMessage();
 			var builder = new StringBuilder(loggingEvent.getRenderedMessage());
-			foreach (string exceptionLine in exceptionInformation)
+			foreach (var exceptionLine in exceptionInformation)
 			{
 				builder.AppendLine();
 				builder.Append(exceptionLine);

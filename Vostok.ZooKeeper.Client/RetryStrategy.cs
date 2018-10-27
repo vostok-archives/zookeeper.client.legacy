@@ -82,7 +82,7 @@ namespace Vostok.Zookeeper.Client
 		{
 			unchecked
 			{
-				int hashCode = MaxAttempts;
+				var hashCode = MaxAttempts;
 				hashCode = (hashCode * 397) ^ AttemptTimeout.GetHashCode();
 				hashCode = (hashCode * 397) ^ AttemptDelay.GetHashCode();
 				return hashCode;
