@@ -17,8 +17,8 @@ notests *default:
 
 full-build > notests:
   deps:
-    - vostok.commons.testing
     - vostok.zookeeper.localensemble
+    - vostok.commons.testing
     - vostok.logging.console
   build:
     target: Vostok.Zookeeper.Client.sln
