@@ -1,7 +1,14 @@
-﻿using System.Text;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 using FluentAssertions;
 using FluentAssertions.Extensions;
 using NUnit.Framework;
+using org.apache.zookeeper;
+using org.apache.zookeeper.data;
 using Vostok.Logging.Abstractions;
 using Vostok.ZooKeeper.LocalEnsemble;
 
@@ -29,96 +36,134 @@ namespace Vostok.Zookeeper.Client.Tests
             ensemble.Dispose();
         }
 
-        protected static void EnsureChildrenExistWithCorrectStat(IZooKeeperClient client, string rootNode, string[] children, int nodeVersion = 0, int childVersion = 0)
+        protected static void EnsureChildrenExistWithCorrectStat(org.apache.zookeeper.ZooKeeper client, string rootNode, string[] children, int nodeVersion = 0, int childVersion = 0)
         {
-            var getChildrenWithStatResult = client.GetChildrenWithStat(rootNode);
-            getChildrenWithStatResult.Path.Should().Be(rootNode);
-            getChildrenWithStatResult.Status.Should().Be(ZooKeeperStatus.Ok);
-            getChildrenWithStatResult.Payload.Item1.Should().BeEquivalentTo(children);
-            getChildrenWithStatResult.Payload.Item2.Version.Should().Be(nodeVersion);
-            getChildrenWithStatResult.Payload.Item2.Cversion.Should().Be(childVersion);
+            var getChildrenWithStatResult = client.getChildrenAsync(rootNode).GetAwaiter().GetResult();
+            getChildrenWithStatResult.Children.Should().BeEquivalentTo(children);
+            //getChildrenWithStatResult.Path.Should().Be(rootNode);
+            //getChildrenWithStatResult.Status.Should().Be(ZooKeeperStatus.Ok);
+            //getChildrenWithStatResult.Payload.Item1.Should().BeEquivalentTo(children);
+            //getChildrenWithStatResult.Payload.Item2.Version.Should().Be(nodeVersion);
+            //getChildrenWithStatResult.Payload.Item2.Cversion.Should().Be(childVersion);
         }
 
-        protected static void EnsureChildrenExists(IZooKeeperClient client, string rootNode, string[] children)
+        protected static void EnsureChildrenExists(org.apache.zookeeper.ZooKeeper client, string rootNode, string[] children)
         {
-            var getChildrenResult = client.GetChildren(rootNode);
-            getChildrenResult.EnsureSuccess();
-            getChildrenResult.Status.Should().Be(ZooKeeperStatus.Ok);
-            getChildrenResult.Path.Should().Be(rootNode);
-            getChildrenResult.Payload.Should().BeEquivalentTo(children);
+            var getChildrenResult = client.getChildrenAsync(rootNode).GetAwaiter().GetResult();
+            getChildrenResult.Children.Should().BeEquivalentTo(children);
+            //getChildrenResult.EnsureSuccess();
+            //getChildrenResult.Status.Should().Be(ZooKeeperStatus.Ok);
+            //getChildrenResult.Path.Should().Be(rootNode);
+            //getChildrenResult.Payload.Should().BeEquivalentTo(children);
         }
 
-        protected static void CreateNode(string path, CreateMode createMode, IZooKeeperClient client)
+        protected static void CreateNode(string path, org.apache.zookeeper.CreateMode createMode, org.apache.zookeeper.ZooKeeper client)
         {
-            var createResult = client.Create(path, null, createMode).EnsureSuccess();
-            createResult.Path.Should().Be(path);
-            createResult.Status.Should().Be(ZooKeeperStatus.Ok);
+            var parts = path.Split(new[] {"/"}, StringSplitOptions.RemoveEmptyEntries);
+            var currentPart = string.Empty;
+            foreach (var part in parts)
+            {
+                currentPart = $"{currentPart}/{part}";
+                var createResult = client.createAsync(currentPart, new byte[0], ZooDefs.Ids.OPEN_ACL_UNSAFE, createMode).Result;
+                createResult.Should().NotBeNull();
+            }
         }
 
-        protected static void EnsureNodeExist(string path, IZooKeeperClient anotherClient, int expectedVersion = 0)
+        protected static void EnsureNodeExist(string path, org.apache.zookeeper.ZooKeeper anotherClient, int expectedVersion = 0)
         {
-            var existResult = anotherClient.Exists(path);
-            existResult.EnsureSuccess();
-            existResult.Path.Should().Be(path);
-            existResult.Status.Should().Be(ZooKeeperStatus.Ok);
-            existResult.Payload.Version.Should().Be(expectedVersion);
+            var existResult = anotherClient.existsAsync(path).GetAwaiter().GetResult();
+            existResult.Should().NotBeNull();
+            //existResult.EnsureSuccess();
+            //existResult.Path.Should().Be(path);
+            //existResult.Status.Should().Be(ZooKeeperStatus.Ok);
+            //existResult.Payload.Version.Should().Be(expectedVersion);
         }
 
-        protected static void EnsureNodeDoesNotExist(string path, IZooKeeperClient anotherClient)
+        protected static void EnsureNodeDoesNotExist(string path, org.apache.zookeeper.ZooKeeper anotherClient)
         {
-            var existResult = anotherClient.Exists(path);
-            existResult.EnsureSuccess();
-            existResult.Path.Should().Be(path);
-            existResult.Status.Should().Be(ZooKeeperStatus.Ok);
-            existResult.Payload.Should().BeNull();
+            var existResult = anotherClient.existsAsync(path).GetAwaiter().GetResult();
+            existResult.Should().BeNull();
+            //existResult.EnsureSuccess();
+            //existResult.Path.Should().Be(path);
+            //existResult.Status.Should().Be(ZooKeeperStatus.Ok);
+            //existResult.Payload.Should().BeNull();
         }
 
-        protected static void DeleteNode(string path, IZooKeeperClient client)
+        protected static void DeleteNode(string path, org.apache.zookeeper.ZooKeeper client)
         {
-            var deleteResult = client.Delete(path).EnsureSuccess();
-            deleteResult.Status.Should().Be(ZooKeeperStatus.Ok);
-            deleteResult.Path.Should().Be(path);
+            client.deleteAsync(path).Wait();
         }
 
-        protected static void DeleteNonexistentNode(string path, IZooKeeperClient client)
+        protected static void DeleteNonexistentNode(string path, org.apache.zookeeper.ZooKeeper client)
         {
-            var deleteResult = client.Delete(path);
-            deleteResult.Status.Should().Be(ZooKeeperStatus.NoNode);
-            deleteResult.Path.Should().Be(path);
+            try
+            {
+                client.deleteAsync(path).GetAwaiter().GetResult();
+            }
+            catch (Exception e)
+            {
+                e.Should().BeAssignableTo<KeeperException.NoNodeException>();
+            }
+            //deleteResult.Status.Should().Be(ZooKeeperStatus.NoNode);
+            //deleteResult.Path.Should().Be(path);
         }
 
-        protected static void SetData(string path, string data, IZooKeeperClient client)
+        protected static void SetData(string path, string data, org.apache.zookeeper.ZooKeeper client)
         {
-            var setDataResult = client.SetData(path, Encoding.UTF8.GetBytes(data)).EnsureSuccess();
-            setDataResult.EnsureSuccess();
-            setDataResult.Status.Should().Be(ZooKeeperStatus.Ok);
-            setDataResult.Path.Should().Be(path);
+            var setDataResult = client.setDataAsync(path, Encoding.UTF8.GetBytes(data)).GetAwaiter().GetResult();
+            setDataResult.Should().NotBeNull();
+            //setDataResult.EnsureSuccess();
+            //setDataResult.Status.Should().Be(ZooKeeperStatus.Ok);
+            //setDataResult.Path.Should().Be(path);
         }
 
-        protected static void EnsureDataExists(string path, IZooKeeperClient client, string expectedData, int expectedVersion = 0)
+        protected static void EnsureDataExists(string path, org.apache.zookeeper.ZooKeeper client, string expectedData, int expectedVersion = 0)
         {
             var expectedDataBytes = Encoding.UTF8.GetBytes(expectedData);
-            var getDataResult = client.GetData(path);
-            getDataResult.EnsureSuccess();
-            getDataResult.Path.Should().Be(path);
-            getDataResult.Status.Should().Be(ZooKeeperStatus.Ok);
-            getDataResult.Payload.Item1.Should().BeEquivalentTo(expectedDataBytes);
-            getDataResult.Payload.Item2.Version.Should().Be(expectedVersion);
+            var getDataResult = client.getDataAsync(path).GetAwaiter().GetResult();
+            getDataResult.Data.Should().BeEquivalentTo(expectedDataBytes);
+            //getDataResult.EnsureSuccess();
+            //getDataResult.Path.Should().Be(path);
+            //getDataResult.Status.Should().Be(ZooKeeperStatus.Ok);
+            //getDataResult.Payload.Item1.Should().BeEquivalentTo(expectedDataBytes);
+            //getDataResult.Payload.Item2.Version.Should().Be(expectedVersion);
         }
 
-        protected static void CheckVersions(IZooKeeperClient client, string rootNode, int version, int cVersion)
+        protected static void CheckVersions(org.apache.zookeeper.ZooKeeper client, string rootNode, int version, int cVersion)
         {
-            var currentStat = client.GetData(rootNode).Payload.Item2;
-            currentStat.Version.Should().Be(version);
-            currentStat.Cversion.Should().Be(cVersion);
+            var currentStat = client.existsAsync(rootNode).GetAwaiter().GetResult();
+            currentStat.getVersion().Should().Be(version);
+            currentStat.getCversion().Should().Be(cVersion);
+            //currentStat.Version.Should().Be(version);
+            //currentStat.Cversion.Should().Be(cVersion);
         }
 
-        protected ZooKeeperClient CreateNewClient(ILog logForClient = null)
+        protected org.apache.zookeeper.ZooKeeper CreateNewClient(ILog logForClient = null)
         {
-            var client = new ZooKeeperClient(ensemble.ConnectionString, 5.Seconds(), logForClient ?? log);
-            client.Start();
-            client.WaitUntilConnected();
+            //10.217.9.184:2181,10.217.6.124:2181,10.217.6.140:2181,10.217.6.222:2181,10.217.9.47:2181
+            var client = new org.apache.zookeeper.ZooKeeper(
+                //"10.217.9.184:2181,10.217.6.124:2181,10.217.6.140:2181,10.217.6.222:2181,10.217.9.47:2181",
+                ensemble.ConnectionString,
+                5000,
+                null);
+            Thread.Sleep(1.Seconds());
             return client;
+        }
+    }
+
+
+    internal class WatcherDelegate : Watcher
+    {
+        private readonly Func<WatchedEvent, Task> processor;
+
+        public WatcherDelegate(Func<WatchedEvent, Task> processor)
+        {
+            this.processor = processor;
+        }
+
+        public override Task process(WatchedEvent @event)
+        {
+            return this.processor(@event);
         }
     }
 }

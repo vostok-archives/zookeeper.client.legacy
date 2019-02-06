@@ -7,6 +7,9 @@
     <TargetFrameworks Condition="'$(OS)' != 'Windows_NT'">netcoreapp2.1</TargetFrameworks>
     <LangVersion>7.2</LangVersion>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|netcoreapp2.1|AnyCPU'">
+    <Prefer32Bit>true</Prefer32Bit>
+  </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="FluentAssertions" Version="5.4.1" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.8.0" />
@@ -14,6 +17,8 @@
     <PackageReference Include="NUnit" Version="3.10.1" />
     <PackageReference Include="NUnit3TestAdapter" Version="3.10.0" />
     <PackageReference Include="System.Management" Version="4.5.0" />
+    <PackageReference Include="ZooKeeperNetEx" Version="3.4.12" />
+    <PackageReference Include="ZooKeeperNetEx.Recipes" Version="3.4.12" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Vostok.Zookeeper.Client\Vostok.ZooKeeper.Client.csproj" />
@@ -56,9 +61,6 @@
     <Reference Include="Vostok.ZooKeeper.LocalEnsemble">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\vostok.zookeeper.localensemble\Vostok.ZooKeeper.LocalEnsemble\bin\Release\netstandard2.0\Vostok.ZooKeeper.LocalEnsemble.dll</HintPath>
-    </Reference>
-    <Reference Include="ZooKeeper.Curator.Tests">
-      <HintPath>..\Assemblies\Testing\ZooKeeper.Curator.Tests.dll</HintPath>
     </Reference>
     <Reference Include="Vostok.Logging.Console">
       <SpecificVersion>False</SpecificVersion>
