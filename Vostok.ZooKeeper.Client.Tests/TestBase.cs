@@ -20,13 +20,13 @@ namespace Vostok.Zookeeper.Client.Tests
         [OneTimeSetUp]
         public void OneTimeSetUpBase()
         {
-            ensemble = ZooKeeperEnsemble.DeployNew(1, log);
+            //ensemble = ZooKeeperEnsemble.DeployNew(1, log);
         }
 
         [OneTimeTearDown]
         public void OneTimeTearDownBase()
         {
-            ensemble.Dispose();
+            //ensemble.Dispose();
         }
 
         protected static void EnsureChildrenExistWithCorrectStat(IZooKeeperClient client, string rootNode, string[] children, int nodeVersion = 0, int childVersion = 0)
@@ -115,7 +115,9 @@ namespace Vostok.Zookeeper.Client.Tests
 
         protected ZooKeeperClient CreateNewClient(ILog logForClient = null)
         {
-            var client = new ZooKeeperClient(ensemble.ConnectionString, 5.Seconds(), logForClient ?? log);
+            //10.217.9.184:2181,10.217.6.124:2181,10.217.6.140:2181,10.217.6.222:2181,10.217.9.47:2181
+            var client = new ZooKeeperClient("10.217.9.184:2181,10.217.6.124:2181,10.217.6.140:2181,10.217.6.222:2181,10.217.9.47:2181", 5.Seconds(), logForClient ?? log);
+            //var client = new ZooKeeperClient(ensemble.ConnectionString, 5.Seconds(), logForClient ?? log);
             client.Start();
             client.WaitUntilConnected();
             return client;
